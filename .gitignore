@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+.DS_Store
+
+# Environment (never commit secrets)
+.env
+.env.local
+.env.*.local
+*.local
+
+# Python backend
+backend/.env
+backend/.venv/
+backend/__pycache__/
+**/__pycache__/
