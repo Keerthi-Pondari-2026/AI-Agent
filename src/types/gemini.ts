@@ -20,5 +20,12 @@ export interface FinalSummaryPayload {
   strengths: string[]
   improvement_areas: string[]
   next_steps: string[]
+  study_topics?: string[]
+  question_feedback?: {
+    question: string
+    score: number
+    feedback: string
+    example_improvement?: string | null
+  }[]
   summary: string
 }

@@ -78,14 +78,14 @@ const questionBank: InterviewQuestion[] = [
 ]
 
 export function getQuestionsForSession(
-  interviewType: string,
+  interviewCategory: string,
   difficulty: string,
 ): InterviewQuestion[] {
-  const count = difficulty === 'hard' ? 5 : difficulty === 'easy' ? 3 : 4
+  const count = difficulty === 'hard' ? 5 : difficulty === 'easy' ? 3 : 4 // demo cap; setup questionCount applies to live Gemini sessions
   const filtered =
-    interviewType === 'behavioral'
+    interviewCategory === 'behavioral' || interviewCategory === 'hr'
       ? questionBank.filter((q) => q.category === 'Behavioral')
-      : interviewType === 'technical'
+      : interviewCategory === 'technical'
         ? questionBank.filter((q) => q.category !== 'Behavioral')
         : questionBank
 

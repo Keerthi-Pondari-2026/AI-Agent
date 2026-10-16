@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ChevronLeft,
@@ -8,9 +8,14 @@ import {
   LogOut,
   MessageSquare,
   RotateCcw,
+  Volume2,
+  VolumeX,
+  Mic,
+  MicOff,
 } from 'lucide-react'
 import { useInterview } from '../context/InterviewContext'
 import { useAuth } from '../context/AuthContext'
+import { useInterviewSpeech } from '../hooks/useInterviewSpeech'
 
 export function InterviewRoom() {
   const navigate = useNavigate()
@@ -35,6 +40,10 @@ export function InterviewRoom() {
   } = useInterview()
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [paused, setPaused] = useState(false)
+  const [endConfirm, setEndConfirm] = useState(false)
+  const speech = useInterviewSpeech()
+  const lastSpokenId = useRef<string | null>(null)
 
   const scheduleSave = useCallback(
     (questionId: string, text: string) => {
@@ -57,6 +66,20 @@ export function InterviewRoom() {
   const current = questions[currentIndex]
   const progress = total > 0 ? ((currentIndex + 1) / total) * 100 : 0
   const currentEval = current ? evaluations[current.id] : undefined
+
+  useEffect(() => {
+    const q = questions[currentIndex]
+    if (!q || paused) return
+    if (lastSpokenId.current === q.id) return
+    lastSpokenId.current = q.id
+    speech.speakQuestion(q.prompt, () => {
+      if (speech.autoListenAfterSpeak && speech.recognitionSupported) {
+        speech.startListening((text) => {
+          setAnswerLocal(q.id, text)
+        })
+      }
+    })
+  }, [questions, currentIndex, paused, speech, setAnswerLocal])
 
   const endInterview = async () => {
     const ok = await completeSession()
@@ -101,13 +124,19 @@ export function InterviewRoom() {
             {config.jobRole}
           </h1>
           <p className="text-sm text-navy-soft capitalize">
-            {config.interviewType.replace('-', ' ')} · {config.difficulty} ·{' '}
-            {config.experienceLevel}
+            {config.interviewCategory.replace('-', ' ')} · {config.difficulty} ·{' '}
+            {config.experienceLevel} · {config.questionCount} questions
           </p>
         </div>
         <button
           type="button"
-          onClick={() => void endInterview()}
+          onClick={() => {
+            if (!endConfirm) {
+              setEndConfirm(true)
+              return
+            }
+            void endInterview()
+          }}
           disabled={sessionBusy}
           className="inline-flex items-center justify-center gap-2 rounded-xl border border-lavender-200 bg-white px-4 py-2.5 text-sm font-medium text-navy-muted transition hover:border-red-200 hover:text-red-600 disabled:opacity-50"
         >
@@ -116,9 +145,12 @@ export function InterviewRoom() {
           ) : (
             <LogOut className="h-4 w-4" aria-hidden />
           )}
-          End interview
+          {endConfirm ? 'Confirm end' : 'End interview'}
         </button>
       </header>
+      {endConfirm && (
+        <p className="text-sm text-amber-800">Click &quot;Confirm end&quot; again to finish early.</p>
+      )}
 
       {sessionError && (
         <div
@@ -154,6 +186,45 @@ export function InterviewRoom() {
         Question {currentIndex + 1} of {total}
       </p>
 
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-lavender-100 bg-white px-4 py-3 text-sm">
+        <span
+          className={[
+            'inline-flex h-2 w-2 rounded-full',
+            speech.status === 'speaking' ? 'bg-accent-purple animate-pulse' : speech.status === 'listening' ? 'bg-emerald-500 animate-pulse' : 'bg-lavender-200',
+          ].join(' ')}
+          aria-hidden
+        />
+        <span className="text-navy-muted capitalize">
+          {speech.status === 'idle' ? 'Ready' : speech.status}
+        </span>
+        <button type="button" className="rounded-lg border px-2 py-1" onClick={() => speech.speakQuestion(current.prompt)}>
+          <Volume2 className="h-4 w-4 inline" aria-hidden /> Replay
+        </button>
+        <button
+          type="button"
+          className="rounded-lg border px-2 py-1"
+          onClick={() => speech.setSpeechEnabled(!speech.speechEnabled)}
+        >
+          {speech.speechEnabled ? <VolumeX className="h-4 w-4" aria-hidden /> : <Volume2 className="h-4 w-4" aria-hidden />}
+          {speech.speechEnabled ? 'Mute voice' : 'Enable voice'}
+        </button>
+        <button
+          type="button"
+          className="rounded-lg border px-2 py-1"
+          onClick={() => {
+            if (speech.status === 'listening') speech.stopListening()
+            else speech.startListening((t) => setAnswerLocal(current.id, t))
+          }}
+          disabled={!speech.recognitionSupported}
+        >
+          {speech.status === 'listening' ? <MicOff className="h-4 w-4 inline" aria-hidden /> : <Mic className="h-4 w-4 inline" aria-hidden />}
+          {speech.status === 'listening' ? 'Stop mic' : 'Record answer'}
+        </button>
+        <button type="button" className="rounded-lg border px-2 py-1" onClick={() => setPaused((p) => !p)}>
+          {paused ? 'Resume' : 'Pause'}
+        </button>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[1fr_220px]">
         <div className="rounded-2xl border border-lavender-100 bg-white p-6 shadow-card sm:p-8">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-lavender-100 px-3 py-1 text-xs font-semibold text-accent-purple">
@@ -171,13 +242,19 @@ export function InterviewRoom() {
             </p>
           )}
 
+          {speech.liveTranscript && (
+            <p className="mt-4 rounded-lg bg-lavender-50 p-2 text-xs text-navy-muted">
+              Live transcript (edit before submit): {speech.liveTranscript}
+            </p>
+          )}
           <label className="mt-6 block text-sm font-medium text-navy-muted">
-            Your answer
+            Your answer (voice or text)
             <textarea
               value={answerText}
               onChange={(e) => {
                 const text = e.target.value
                 setAnswerLocal(current.id, text)
+                speech.setLiveTranscript(text)
                 scheduleSave(current.id, text)
               }}
               rows={8}

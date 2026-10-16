@@ -68,5 +68,14 @@ export function generateHeuristicResults(
       'Re-run this interview after reviewing your stored answers in Supabase',
       'When Gemini is connected, scores will reflect AI evaluation instead of heuristics',
     ],
+    studyTopics: ['STAR method for behavioral answers', 'Role-specific fundamentals from your resume'],
+    questionFeedback: questions.map((q, i) => ({
+      question: q.prompt,
+      score: perQuestion[i] ?? 0,
+      feedback:
+        perQuestion[i] === 0
+          ? 'No answer recorded — try again with more detail.'
+          : 'Illustrative demo feedback based on answer length (not Gemini).',
+    })),
   }
 }

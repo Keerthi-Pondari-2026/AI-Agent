@@ -31,11 +31,32 @@ Get the key from [Google AI Studio](https://aistudio.google.com/apikey). Never p
 
 ## 3. Run the API
 
+**Recommended** (uses `backend\.venv` automatically):
+
+```powershell
+cd C:\Users\HP\AI-Projects\AI-Agent\backend
+.\run.ps1
+```
+
+Or activate the venv first, then run uvicorn with **that** Python (not system `py`):
+
 ```powershell
 cd C:\Users\HP\AI-Projects\AI-Agent\backend
 .\.venv\Scripts\Activate.ps1
-py -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+### `Form data requires "python-multipart"`
+
+This means uvicorn is using **global** Python (e.g. `pythoncore-3.15`) instead of `backend\.venv`. Fix:
+
+```powershell
+cd C:\Users\HP\AI-Projects\AI-Agent\backend
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
+```
+
+Or run `.\run.ps1`.
 
 Health check: http://localhost:8000/health
 

@@ -49,6 +49,13 @@ export interface DbInterviewResult {
   improvements: string[]
   recommendations: string[]
   summary: string | null
+  question_feedback?: {
+    question: string
+    score: number
+    feedback: string
+    example_improvement?: string
+  }[]
+  study_topics?: string[]
   is_illustrative: boolean
   created_at: string
 }

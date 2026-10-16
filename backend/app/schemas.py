@@ -2,9 +2,26 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-ExperienceLevel = Literal["junior", "mid", "senior", "lead"]
-InterviewType = Literal["technical", "behavioral", "system-design", "mixed"]
+ExperienceLevel = Literal[
+    "junior",
+    "mid",
+    "senior",
+    "lead",
+    "fresher",
+    "entry",
+    "experienced",
+]
+InterviewType = Literal[
+    "technical",
+    "behavioral",
+    "system-design",
+    "mixed",
+    "hr",
+    "aptitude",
+    "logical-reasoning",
+]
 Difficulty = Literal["easy", "medium", "hard"]
+QuestionCount = Literal[5, 10, 15]
 
 
 class InterviewContext(BaseModel):
@@ -12,6 +29,10 @@ class InterviewContext(BaseModel):
     experience_level: ExperienceLevel
     interview_type: InterviewType
     difficulty: Difficulty
+    question_count: QuestionCount = 5
+    candidate_name: str | None = Field(default=None, max_length=120)
+    job_description: str | None = Field(default=None, max_length=4000)
+    resume_excerpt: str | None = Field(default=None, max_length=8000)
 
     @field_validator("job_role")
     @classmethod
@@ -66,6 +87,13 @@ class QaPair(BaseModel):
     answer: str = Field(max_length=12000)
 
 
+class QuestionFeedbackItem(BaseModel):
+    question: str
+    score: int = Field(ge=0, le=100)
+    feedback: str
+    example_improvement: str | None = None
+
+
 class FinalSummaryRequest(BaseModel):
     context: InterviewContext
     qa_pairs: list[QaPair] = Field(min_length=1, max_length=30)
@@ -82,4 +110,6 @@ class FinalSummaryResponse(BaseModel):
     strengths: list[str]
     improvement_areas: list[str]
     next_steps: list[str]
+    study_topics: list[str] = Field(default_factory=list)
+    question_feedback: list[QuestionFeedbackItem] = Field(default_factory=list)
     summary: str = Field(max_length=3000)

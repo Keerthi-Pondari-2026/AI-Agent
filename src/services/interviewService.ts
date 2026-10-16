@@ -41,7 +41,12 @@ export async function createInterviewRecord(
       user_id: userId,
       job_role: config.jobRole,
       experience_level: config.experienceLevel,
-      interview_type: config.interviewType,
+      interview_type: config.interviewCategory,
+      interview_category: config.interviewCategory,
+      candidate_name: config.candidateName,
+      question_count: config.questionCount,
+      job_description: config.jobDescription ?? null,
+      resume_excerpt_snapshot: config.resumeExcerpt ?? null,
       difficulty: config.difficulty,
       status: 'in_progress',
     })
@@ -139,7 +144,12 @@ export async function upsertAnswer(
 export async function completeInterviewSession(
   interviewId: string,
   results: DemoResults,
-  options: { summary: string; isIllustrative: boolean },
+  options: {
+    summary: string
+    isIllustrative: boolean
+    questionFeedback?: DemoResults['questionFeedback']
+    studyTopics?: string[]
+  },
 ): Promise<DbInterviewResult> {
   const { error: statusError } = await supabase
     .from('interviews')
@@ -164,6 +174,8 @@ export async function completeInterviewSession(
         improvements: results.improvements,
         recommendations: results.recommendations,
         summary: options.summary,
+        question_feedback: options.questionFeedback ?? [],
+        study_topics: options.studyTopics ?? [],
         is_illustrative: options.isIllustrative,
       },
       { onConflict: 'interview_id' },
@@ -246,6 +258,8 @@ export function dbResultToDemoResults(row: DbInterviewResult): DemoResults {
     strengths: row.strengths ?? [],
     improvements: row.improvements ?? [],
     recommendations: row.recommendations ?? [],
+    studyTopics: row.study_topics ?? [],
+    questionFeedback: Array.isArray(row.question_feedback) ? row.question_feedback : [],
     summary: row.summary ?? undefined,
   }
 }
@@ -256,6 +270,13 @@ export function finalSummaryToDemoResults(payload: {
   strengths: string[]
   improvement_areas: string[]
   next_steps: string[]
+  study_topics?: string[]
+  question_feedback?: {
+    question: string
+    score: number
+    feedback: string
+    example_improvement?: string | null
+  }[]
   summary: string
 }): DemoResults {
   return {
@@ -264,6 +285,13 @@ export function finalSummaryToDemoResults(payload: {
     strengths: payload.strengths,
     improvements: payload.improvement_areas,
     recommendations: payload.next_steps,
+    studyTopics: payload.study_topics ?? [],
+    questionFeedback: (payload.question_feedback ?? []).map((q) => ({
+      question: q.question,
+      score: q.score,
+      feedback: q.feedback,
+      exampleImprovement: q.example_improvement ?? undefined,
+    })),
     summary: payload.summary,
   }
 }

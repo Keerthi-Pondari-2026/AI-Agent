@@ -30,10 +30,12 @@ import { getQuestionsForSession } from '../data/mockData'
 import { useAuth } from './AuthContext'
 
 const defaultConfig: InterviewConfig = {
-  jobRole: 'Frontend Engineer',
-  experienceLevel: 'mid',
-  interviewType: 'mixed',
+  candidateName: '',
+  jobRole: 'Software Engineer',
+  experienceLevel: 'fresher',
+  interviewCategory: 'mixed',
   difficulty: 'medium',
+  questionCount: 5,
 }
 
 const emptyResults: DemoResults = {
@@ -126,7 +128,7 @@ export function InterviewProvider({ children }: { children: ReactNode }) {
 
     const run = async (): Promise<boolean> => {
       if (isDemoMode) {
-        const templates = getQuestionsForSession(config.interviewType, config.difficulty)
+        const templates = getQuestionsForSession(config.interviewCategory, config.difficulty)
         const qs: InterviewQuestion[] = templates.map((q, index) => ({
           ...q,
           id: `demo-local-q-${index}`,
@@ -179,7 +181,7 @@ export function InterviewProvider({ children }: { children: ReactNode }) {
     if (!current) return false
 
     if (isDemoMode) {
-      setCurrentIndex((i) => Math.min(i + 1, questions.length - 1))
+      setCurrentIndex(Math.min(currentIndex + 1, questions.length - 1))
       return true
     }
 
@@ -308,6 +310,8 @@ export function InterviewProvider({ children }: { children: ReactNode }) {
       const row = await completeInterviewSession(interviewId, demoResults, {
         summary: summaryPayload.summary,
         isIllustrative: false,
+        questionFeedback: demoResults.questionFeedback,
+        studyTopics: demoResults.studyTopics,
       })
       setResults(dbResultToDemoResults(row))
       setResultsIllustrative(row.is_illustrative)

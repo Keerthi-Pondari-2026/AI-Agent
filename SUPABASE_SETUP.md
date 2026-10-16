@@ -45,6 +45,13 @@ The schema lives in:
 
 This creates tables, RLS policies, and a trigger to create a `profiles` row when a user signs up.
 
+Then run **`supabase/migrations/002_resume_voice_platform.sql`** the same way. It adds:
+
+- Profile fields (`full_name`, resume metadata, `profile_completed`, target role)
+- Extended interview configuration columns
+- Private **`resumes`** storage bucket and RLS policies
+- Richer results fields (`question_feedback`, `study_topics`)
+
 > The agent cannot verify that this ran on your project unless you run it in your dashboard.
 
 ## 4. Authentication settings

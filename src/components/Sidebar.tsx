@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Settings2,
+  UserCircle,
   Mic2,
   BarChart3,
   Sparkles,
@@ -12,6 +13,7 @@ import { DEMO_EMAIL } from '../lib/demoAuth'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/profile', label: 'Profile & resume', icon: UserCircle },
   { to: '/setup', label: 'Interview setup', icon: Settings2 },
   { to: '/interview', label: 'Interview room', icon: Mic2 },
   { to: '/results', label: 'Results', icon: BarChart3 },

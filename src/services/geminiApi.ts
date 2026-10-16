@@ -30,8 +30,12 @@ function toContextBody(config: InterviewConfig) {
   return {
     job_role: config.jobRole,
     experience_level: config.experienceLevel,
-    interview_type: config.interviewType,
+    interview_type: config.interviewCategory,
     difficulty: config.difficulty,
+    question_count: config.questionCount,
+    candidate_name: config.candidateName,
+    job_description: config.jobDescription ?? null,
+    resume_excerpt: config.resumeExcerpt ?? null,
   }
 }
 
@@ -63,14 +67,6 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
   }
 
   return data as T
-}
-
-export async function fetchApiHealth(): Promise<{ status: string; gemini_configured: string }> {
-  const response = await fetch(apiUrl('/health'))
-  if (!response.ok) {
-    throw new GeminiApiError('Health check failed.', response.status)
-  }
-  return response.json() as Promise<{ status: string; gemini_configured: string }>
 }
 
 export async function generateInterviewQuestions(

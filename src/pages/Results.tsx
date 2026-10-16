@@ -41,7 +41,7 @@ export function Results() {
           <h1 className="font-display text-3xl text-navy">Your results</h1>
           <p className="mt-1 text-navy-muted">
             {config.jobRole} ·{' '}
-            <span className="capitalize">{config.interviewType.replace('-', ' ')}</span>
+            <span className="capitalize">{config.interviewCategory.replace('-', ' ')}</span>
           </p>
         </div>
         {(resultsIllustrative || isDemoMode) && (
@@ -151,6 +151,35 @@ export function Results() {
               </ul>
             </section>
           </div>
+
+          {results.questionFeedback && results.questionFeedback.length > 0 && (
+            <section className="rounded-2xl border border-lavender-100 bg-white p-6 shadow-card">
+              <h2 className="font-semibold text-navy">Question-by-question feedback</h2>
+              <ul className="mt-4 space-y-4">
+                {results.questionFeedback.map((item) => (
+                  <li key={item.question} className="border-b border-lavender-50 pb-4 last:border-0">
+                    <p className="text-sm font-medium text-navy">{item.question}</p>
+                    <p className="text-xs text-accent-purple">Score: {item.score}/100</p>
+                    <p className="mt-1 text-sm text-navy-muted">{item.feedback}</p>
+                    {item.exampleImprovement && (
+                      <p className="mt-1 text-xs text-navy-soft">Example: {item.exampleImprovement}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {results.studyTopics && results.studyTopics.length > 0 && (
+            <section className="rounded-2xl border border-lavender-100 bg-white p-6 shadow-card">
+              <h2 className="font-semibold text-navy">Suggested study topics</h2>
+              <ul className="mt-3 list-disc pl-5 text-sm text-navy-muted">
+                {results.studyTopics.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {results.summary && (
             <section className="rounded-2xl border border-lavender-100 bg-white p-6 shadow-card">

@@ -8,6 +8,8 @@ import { Setup } from './pages/Setup'
 import { InterviewRoom } from './pages/InterviewRoom'
 import { Results } from './pages/Results'
 import { Login } from './pages/Login'
+import { Profile } from './pages/Profile'
+import { ProfileGate } from './components/ProfileGate'
 
 export default function App() {
   return (
@@ -19,10 +21,13 @@ export default function App() {
             <Route
               element={
                 <ProtectedRoute>
-                  <Layout />
+                  <ProfileGate>
+                    <Layout />
+                  </ProfileGate>
                 </ProtectedRoute>
               }
             >
+              <Route path="profile" element={<Profile />} />
               <Route index element={<Dashboard />} />
               <Route path="setup" element={<Setup />} />
               <Route path="interview" element={<InterviewRoom />} />
